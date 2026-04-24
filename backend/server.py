@@ -385,7 +385,10 @@ async def analyze(
 
 @api_router.get("/analyses", response_model=List[AnalysisSummary])
 async def list_analyses(user: str = Depends(require_auth)):
-    rows = await db.analyses.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
+    rows = await db.analyses.find(
+        {},
+        {"_id": 0, "id": 1, "title": 1, "created_at": 1, "carriers": 1, "source_files": 1},
+    ).sort("created_at", -1).to_list(500)
     summaries: List[AnalysisSummary] = []
     for r in rows:
         created = r.get("created_at")
