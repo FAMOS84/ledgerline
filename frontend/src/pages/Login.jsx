@@ -34,7 +34,8 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex" data-testid="login-page">
+    <div className="min-h-screen bg-white flex flex-col" data-testid="login-page">
+      <div className="flex-1 flex">
       {/* Left — editorial masthead */}
       <div className="hidden lg:flex lg:w-1/2 relative border-r border-zinc-200 bg-zinc-50 grid-paper">
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
@@ -44,7 +45,7 @@ export default function Login() {
             </div>
             <div>
               <div className="text-[10px] uppercase tracking-[0.3em] text-zinc-500">
-                Benefits Intelligence
+                Benefits Brains
               </div>
               <div className="font-heading text-lg tracking-tight text-zinc-950">
                 Ledger &amp; Line
@@ -130,6 +131,12 @@ export default function Login() {
           </div>
         </form>
       </div>
+      </div>
+      <footer className="border-t border-zinc-200 py-4 px-6">
+        <div className="text-[10px] uppercase tracking-[0.25em] text-zinc-400 font-mono text-center">
+          KF/AMOS with assistance from Claude. Copyright 2026. All Rights Reserved.
+        </div>
+      </footer>
     </div>
   );
 }

@@ -187,7 +187,7 @@ export default function Dashboard() {
             </div>
             <div>
               <div className="text-[9px] uppercase tracking-[0.3em] text-zinc-500">
-                Benefits Intelligence
+                Benefits Brains
               </div>
               <div className="font-heading text-base tracking-tight text-zinc-950">
                 Ledger &amp; Line
@@ -382,7 +382,7 @@ export default function Dashboard() {
 
       <footer className="border-t border-zinc-200 mt-10 py-6">
         <div className="max-w-[1400px] mx-auto px-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-[10px] uppercase tracking-[0.25em] text-zinc-400 font-mono">
-          <span>© 2026 · Ledger &amp; Line</span>
+          <span>KF/AMOS with assistance from Claude. Copyright 2026. All Rights Reserved.</span>
           <span>Powered by Claude Sonnet 4.5</span>
         </div>
       </footer>
