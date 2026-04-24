@@ -33,6 +33,9 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
+ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
+# Prefer user's direct Anthropic key if present, else fall back to Emergent universal key
+LLM_API_KEY = ANTHROPIC_API_KEY or EMERGENT_LLM_KEY
 APP_PIN = os.environ.get('APP_PIN', '1497412781')
 JWT_SECRET = os.environ.get('JWT_SECRET', 'dev-secret')
 JWT_ALGO = 'HS256'
@@ -223,13 +226,13 @@ If a benefit line is NOT in the documents, include it with empty arrays and note
 
 
 async def run_llm_extraction(combined_text: str) -> Dict[str, Any]:
-    if not EMERGENT_LLM_KEY:
-        raise HTTPException(status_code=500, detail="EMERGENT_LLM_KEY not configured")
+    if not LLM_API_KEY:
+        raise HTTPException(status_code=500, detail="No LLM API key configured")
 
     session_id = f"insurance-{uuid.uuid4()}"
     chat = (
         LlmChat(
-            api_key=EMERGENT_LLM_KEY,
+            api_key=LLM_API_KEY,
             session_id=session_id,
             system_message=EXTRACTION_SYSTEM_PROMPT,
         )
