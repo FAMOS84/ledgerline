@@ -389,13 +389,14 @@ async def delete_analysis(analysis_id: str, user: str = Depends(require_auth)):
 @api_router.get("/analyses/{analysis_id}/export")
 async def export_analysis(analysis_id: str, token: Optional[str] = None):
     # Allow token via query string for browser download
-    if token:
-        try:
-            pyjwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGO])
-        except pyjwt.InvalidTokenError:
-            raise HTTPException(status_code=401, detail="Invalid token")
-    else:
+    if not token:
         raise HTTPException(status_code=401, detail="Missing token")
+    try:
+        pyjwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGO])
+    except pyjwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except pyjwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
     row = await db.analyses.find_one({"id": analysis_id}, {"_id": 0})
     if not row:
