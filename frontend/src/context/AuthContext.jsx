@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api, getToken, setToken } from "../lib/api";
 
 const AuthContext = createContext(null);
@@ -24,17 +24,18 @@ export function AuthProvider({ children }) {
       .finally(() => setChecking(false));
   }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setToken(null);
     setAuthed(false);
     window.location.href = "/login";
-  };
+  }, []);
 
-  return (
-    <AuthContext.Provider value={{ authed, setAuthed, checking, logout }}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({ authed, setAuthed, checking, logout }),
+    [authed, checking, logout]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
