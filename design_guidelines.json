@@ -1,0 +1,108 @@
+{
+  "theme": "light",
+  "archetype": "Archetype 4 (Swiss & High-Contrast)",
+  "aesthetic": "Editorial, Confident, Professional, Data-dense",
+  "typography": {
+    "fonts": {
+      "heading": "Playfair Display",
+      "body": "IBM Plex Sans",
+      "mono": "JetBrains Mono"
+    },
+    "scale": {
+      "h1": "text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight",
+      "h2": "text-2xl md:text-3xl font-medium tracking-tight",
+      "h3": "text-xl font-medium",
+      "body": "text-sm text-zinc-700",
+      "overline": "text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500"
+    }
+  },
+  "colors": {
+    "background": {
+      "base": "bg-white",
+      "surface": "bg-zinc-50",
+      "surface_elevated": "bg-white border border-zinc-200 shadow-sm"
+    },
+    "text": {
+      "primary": "text-zinc-950",
+      "secondary": "text-zinc-600",
+      "muted": "text-zinc-400"
+    },
+    "brand": {
+      "primary": "bg-zinc-950 text-white hover:bg-zinc-800 hover:text-white",
+      "secondary": "bg-transparent text-zinc-950 border border-zinc-200 hover:bg-zinc-50",
+      "border": "border-zinc-200"
+    },
+    "insurance_lines": {
+      "dental": {
+        "text": "text-blue-700",
+        "bg": "bg-blue-50",
+        "border": "border-blue-200"
+      },
+      "vision": {
+        "text": "text-red-700",
+        "bg": "bg-red-50",
+        "border": "border-red-200"
+      },
+      "basic_life": {
+        "text": "text-emerald-800",
+        "bg": "bg-emerald-50",
+        "border": "border-emerald-200"
+      },
+      "voluntary_life": {
+        "text": "text-orange-700",
+        "bg": "bg-orange-50",
+        "border": "border-orange-200"
+      },
+      "std": {
+        "text": "text-slate-700",
+        "bg": "bg-slate-100",
+        "border": "border-slate-300"
+      },
+      "ltd": {
+        "text": "text-amber-700",
+        "bg": "bg-amber-50",
+        "border": "border-amber-200"
+      }
+    }
+  },
+  "layout_and_spacing": {
+    "general": "Generous spacing for layout (p-8 to p-12) to feel editorial, but compact spacing inside tables (p-2 to p-3) for data density.",
+    "dashboard_grid": "Grid-cols-1 md:grid-cols-3 lg:grid-cols-4. Use bento-style or cardless flat rectangles with sharp 1px borders, NO rounded corners (rounded-none).",
+    "dropzone": "Large central hero dropzone, bordered with a subtle dashed line, elevated on hover. 'Wow' moment provided through micro-interactions and sleek typography rather than generic illustration."
+  },
+  "components": {
+    "cards": "border border-zinc-200 bg-white rounded-none shadow-none hover:border-zinc-400 transition-colors duration-200",
+    "tables": "Dense. Use IBM Plex Sans or a clear tabular sans. Header: text-xs uppercase tracking-wider text-zinc-500 border-b-2 border-zinc-950. Rows: text-sm border-b border-zinc-100. Cell padding: py-2 px-3.",
+    "buttons": "Sharp edges (rounded-none). Primary: bg-zinc-950 text-white hover:bg-zinc-800. Secondary: border border-zinc-200 text-zinc-950 hover:bg-zinc-50.",
+    "status_indicators": "Use the insurance_lines colors. Small colored dots or minimalist pill badges with sharp corners."
+  },
+  "media": {
+    "image_urls": [
+      {
+        "category": "login_background",
+        "url": "https://images.unsplash.com/photo-1770009971150-f50bc7d373a4?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MjJ8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMG1pbmltYWxpc3QlMjBnZW9tZXRyaWMlMjBhcmNoaXRlY3R1cmUlMjB3aGl0ZXxlbnwwfHx8fDE3NzcwMjk3MDR8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Abstract architectural shapes with sky visible. Use with a white/grey overlay to maintain contrast."
+      },
+      {
+        "category": "user_avatar",
+        "url": "https://images.unsplash.com/photo-1771898343647-bd979ad8cca5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTF8MHwxfHNlYXJjaHwxfHxjb25maWRlbnQlMjBwcm9mZXNzaW9uYWwlMjBjb3Jwb3JhdGUlMjBwb3J0cmFpdCUyMGhlYWRzaG90fGVufDB8fHx8MTc3NzAyOTcwMHww&ixlib=rb-4.1.0&q=85",
+        "description": "Smiling man in white shirt for the logged-in user avatar."
+      }
+    ]
+  },
+  "motion_and_interactions": {
+    "hover_states": "Crisp and immediate. Darken borders, slightly shift background colors. Explicitly define hover text colors.",
+    "dropzone_interaction": "On drag enter, background shifts to a subtle zinc-50, and the dashed border becomes solid zinc-900. Smooth 0.2s transition.",
+    "loading_state": "Avoid generic spinners. Use a sleek, thin progress bar at the top of the container or a typewriter-style status update ('Extracting plan design...', 'Analyzing rates...')."
+  },
+  "instructions_to_main_agent": [
+    "CRITICAL: Do not use generic Inter font for headings. Load and use 'Playfair Display' for an authoritative, editorial feel.",
+    "CRITICAL: The UI must be highly functional and data-dense. Use table layouts and grids efficiently.",
+    "Build a PIN login screen first, using the login_background image with a heavy white overlay (bg-white/80 backdrop-blur-md) so the form is readable.",
+    "The main dashboard should feature a prominent drag-and-drop zone at the top. The zone should look editorial, like a submission tray for documents.",
+    "Implement the 6 insurance lines as distinct sections or tabs. Use the color palette defined in 'insurance_lines' to subtly differentiate them.",
+    "Tables must be data-dense. Remove standard padding, use text-sm or text-xs where appropriate, and keep the UI monochrome except for status/category accents.",
+    "Include 'data-testid' on all interactive elements like buttons, inputs, dropzones, and tabs.",
+    "Use standard HTML/Tailwind for the layout structure. You may use Shadcn UI components for dropdowns, tabs, and tables. Ensure you override Shadcn defaults to remove rounded corners (rounded-none) to match the Swiss Brutalist aesthetic."
+  ]
+}
