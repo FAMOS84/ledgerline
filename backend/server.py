@@ -439,21 +439,34 @@ async def export_analysis(analysis_id: str, token: Optional[str] = None):
         raise HTTPException(status_code=404, detail="Analysis not found")
 
     wb = Workbook()
-    # Overview sheet
     ws = wb.active
-    ws.title = "Overview"
-    ws.append(["Title", row.get("title", "")])
-    ws.append(["Created", str(row.get("created_at", ""))])
-    ws.append(["Effective Date", row.get("effective_date") or ""])
-    ws.append(["Carriers", ", ".join(row.get("carriers", []))])
+    ws.title = "Benefits Summary"
+
+    from openpyxl.styles import Font, Alignment, PatternFill
+    bold = Font(bold=True)
+    header_font = Font(bold=True, color="FFFFFF", size=11)
+    header_fill = PatternFill("solid", fgColor="18181B")
+    section_font = Font(bold=True, size=12)
+    section_fill = PatternFill("solid", fgColor="F4F4F5")
+    wrap = Alignment(wrap_text=True, vertical="top")
+
+    # Header block
+    ws["A1"] = row.get("title", "")
+    ws["A1"].font = Font(bold=True, size=14)
+    ws.merge_cells("A1:F1")
+
+    ws.append([])
+    ws.append(["Effective Date", row.get("effective_date") or "", "Carriers", ", ".join(row.get("carriers", [])), "Created", str(row.get("created_at", ""))[:19]])
+    for col in ["A", "C", "E"]:
+        ws[f"{col}{ws.max_row}"].font = bold
     ws.append([])
     ws.append(["Executive Summary"])
+    ws[f"A{ws.max_row}"].font = bold
     ws.append([row.get("executive_summary", "")])
+    ws.merge_cells(start_row=ws.max_row, start_column=1, end_row=ws.max_row, end_column=6)
+    ws.cell(row=ws.max_row, column=1).alignment = wrap
+    ws.row_dimensions[ws.max_row].height = 72
     ws.append([])
-    ws.append(["Source Files"])
-    ws.append(["Name", "Size (bytes)", "Type"])
-    for f in row.get("source_files", []):
-        ws.append([f.get("name", ""), f.get("size", 0), f.get("content_type", "")])
 
     benefit_labels = {
         "dental": "Dental",
@@ -467,25 +480,75 @@ async def export_analysis(analysis_id: str, token: Optional[str] = None):
     benefits = row.get("benefits", {})
     for key, label in benefit_labels.items():
         entry = benefits.get(key, {})
-        sheet = wb.create_sheet(title=label[:31])
-        sheet.append([f"{label} — Plan Design"])
-        sheet.append(["Label", "Value"])
-        for item in entry.get("plan_design", []):
-            sheet.append([item.get("label", ""), item.get("value", "")])
-        sheet.append([])
-        sheet.append([f"{label} — Rates"])
-        sheet.append(["Tier", "Rate", "Frequency", "Notes"])
-        for r in entry.get("rates", []):
-            sheet.append([r.get("tier", ""), r.get("rate", ""), r.get("frequency", ""), r.get("notes", "")])
-        sheet.append([])
-        sheet.append([f"{label} — Coverages"])
-        sheet.append(["Label", "Value"])
-        for item in entry.get("coverages", []):
-            sheet.append([item.get("label", ""), item.get("value", "")])
+        pd_rows = entry.get("plan_design", [])
+        rt_rows = entry.get("rates", [])
+        cv_rows = entry.get("coverages", [])
+
+        # Section header spanning all 6 columns
+        ws.append([label])
+        r = ws.max_row
+        ws.cell(row=r, column=1).font = section_font
+        ws.cell(row=r, column=1).fill = section_fill
+        ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=6)
+
+        # Column headers: Plan Design | Rates (3 cols) | Coverages
+        ws.append(["Plan Design", "", "Rates", "", "", "Coverages"])
+        r = ws.max_row
+        for c in range(1, 7):
+            cell = ws.cell(row=r, column=c)
+            cell.font = header_font
+            cell.fill = header_fill
+        ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=2)
+        ws.merge_cells(start_row=r, start_column=3, end_row=r, end_column=5)
+        ws.cell(row=r, column=6).alignment = Alignment(horizontal="left")
+
+        # Sub-headers
+        ws.append(["Item", "Value", "Tier", "Rate", "Frequency", "Benefit — Amount"])
+        r = ws.max_row
+        for c in range(1, 7):
+            ws.cell(row=r, column=c).font = bold
+
+        max_rows = max(len(pd_rows), len(rt_rows), len(cv_rows), 1)
+        for i in range(max_rows):
+            pd_item = pd_rows[i] if i < len(pd_rows) else {}
+            rt_item = rt_rows[i] if i < len(rt_rows) else {}
+            cv_item = cv_rows[i] if i < len(cv_rows) else {}
+            cv_combined = ""
+            if cv_item:
+                cl = cv_item.get("label", "")
+                cv = cv_item.get("value", "")
+                cv_combined = f"{cl} — {cv}" if cl and cv else (cl or cv)
+            ws.append([
+                pd_item.get("label", ""),
+                pd_item.get("value", ""),
+                rt_item.get("tier", ""),
+                rt_item.get("rate", ""),
+                rt_item.get("frequency", ""),
+                cv_combined,
+            ])
+
         if entry.get("notes"):
-            sheet.append([])
-            sheet.append(["Notes"])
-            sheet.append([entry.get("notes", "")])
+            ws.append([f"Notes: {entry.get('notes', '')}"])
+            ws.cell(row=ws.max_row, column=1).font = Font(italic=True, size=10, color="71717A")
+            ws.merge_cells(start_row=ws.max_row, start_column=1, end_row=ws.max_row, end_column=6)
+
+        ws.append([])  # blank spacer between sections
+
+    # Column widths
+    widths = [26, 32, 18, 16, 14, 40]
+    for i, w in enumerate(widths, start=1):
+        ws.column_dimensions[chr(64 + i)].width = w
+
+    # Page setup: fit to one page width, landscape, compact
+    ws.page_setup.orientation = ws.ORIENTATION_LANDSCAPE
+    ws.page_setup.fitToWidth = 1
+    ws.page_setup.fitToHeight = 0
+    ws.sheet_properties.pageSetUpPr.fitToPage = True
+    ws.page_margins.left = 0.3
+    ws.page_margins.right = 0.3
+    ws.page_margins.top = 0.4
+    ws.page_margins.bottom = 0.4
+    ws.print_options.horizontalCentered = True
 
     buf = io.BytesIO()
     wb.save(buf)

@@ -315,14 +315,14 @@ export default function Dashboard() {
                         role="tab"
                         aria-selected={active}
                         onClick={() => setActiveTab(m.key)}
-                        className={`relative flex-1 min-w-[120px] px-4 py-4 text-sm transition-colors ${
+                        className={`relative flex-1 min-w-[110px] px-3 py-2.5 text-xs transition-colors ${
                           active
                             ? "text-zinc-950 font-medium"
                             : "text-zinc-500 hover:text-zinc-800 hover:bg-zinc-50"
                         }`}
                         data-testid={`tab-${m.key}`}
                       >
-                        <div className="flex items-center justify-center gap-2">
+                        <div className="flex items-center justify-center gap-1.5">
                           <span className={`w-1.5 h-1.5 ${m.dot}`} />
                           <span className="whitespace-nowrap">{m.label}</span>
                           <span
@@ -341,7 +341,7 @@ export default function Dashboard() {
                   })}
                 </div>
 
-                <div className="p-6 md:p-8">
+                <div className="p-4">
                   {BENEFIT_ORDER.filter((m) => m.key === activeTab).map((m) => (
                     <BenefitSection
                       key={m.key}
