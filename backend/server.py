@@ -43,6 +43,12 @@ app = FastAPI(title="Insurance Benefits Summarizer")
 api_router = APIRouter(prefix="/api")
 security = HTTPBearer(auto_error=False)
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+)
+logger = logging.getLogger(__name__)
+
 
 # ---------------- Models ----------------
 class PinRequest(BaseModel):
@@ -221,14 +227,19 @@ async def run_llm_extraction(combined_text: str) -> Dict[str, Any]:
         raise HTTPException(status_code=500, detail="EMERGENT_LLM_KEY not configured")
 
     session_id = f"insurance-{uuid.uuid4()}"
-    chat = LlmChat(
-        api_key=EMERGENT_LLM_KEY,
-        session_id=session_id,
-        system_message=EXTRACTION_SYSTEM_PROMPT,
-    ).with_model("anthropic", CLAUDE_MODEL)
+    chat = (
+        LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=session_id,
+            system_message=EXTRACTION_SYSTEM_PROMPT,
+        )
+        .with_model("anthropic", CLAUDE_MODEL)
+        .with_params(timeout=240, num_retries=1, max_tokens=8000)
+    )
 
-    # Keep text within reasonable size
-    MAX_CHARS = 180_000
+    # Keep text within reasonable size. Claude context handles more,
+    # but we want snappy responses (<90s) so we trim aggressively.
+    MAX_CHARS = 60_000
     if len(combined_text) > MAX_CHARS:
         combined_text = combined_text[:MAX_CHARS] + "\n\n[... truncated for length ...]"
 
@@ -239,7 +250,17 @@ async def run_llm_extraction(combined_text: str) -> Dict[str, Any]:
             f"=== DOCUMENTS ===\n{combined_text}\n=== END ==="
         )
     )
-    response = await chat.send_message(msg)
+    try:
+        response = await asyncio.wait_for(chat.send_message(msg), timeout=240)
+    except asyncio.TimeoutError:
+        logger.error("LLM call timed out after 240s")
+        raise HTTPException(
+            status_code=504,
+            detail="The AI took too long to respond. Try uploading a smaller document or fewer files.",
+        )
+    except Exception as e:
+        logger.exception(f"LLM call failed: {e}")
+        raise HTTPException(status_code=502, detail=f"AI extraction failed: {e}")
 
     # Clean potential markdown fences
     text = response.strip()
@@ -310,8 +331,14 @@ async def analyze(
     for f in files:
         content = await f.read()
         size = len(content)
-        # Extract text off the event loop
-        text = await asyncio.to_thread(extract_file_text, f.filename or "file", content)
+        try:
+            text = await asyncio.to_thread(extract_file_text, f.filename or "file", content)
+        except Exception as e:
+            logger.exception(f"Failed to extract {f.filename}: {e}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Could not read '{f.filename}': {e}. Try a different format.",
+            )
         source_files.append({
             "name": f.filename or "file",
             "size": size,
@@ -322,6 +349,15 @@ async def analyze(
 
     combined_text = "\n\n".join(combined_parts)
 
+    if not combined_text.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="No readable text could be extracted from the uploaded files. Images may be scans without OCR-friendly text.",
+        )
+
+    logger.info(
+        f"Analyzing {len(files)} file(s), {len(combined_text):,} chars extracted, user={user}"
+    )
     llm_data = await run_llm_extraction(combined_text)
     llm_data = _normalize_benefits(llm_data)
 
@@ -340,7 +376,6 @@ async def analyze(
     }
 
     await db.analyses.insert_one(dict(doc))
-    # Don't return _id
     doc.pop("_id", None)
     return doc
 
@@ -477,7 +512,6 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
-logger = logging.getLogger(__name__)
 
 
 @app.on_event("shutdown")

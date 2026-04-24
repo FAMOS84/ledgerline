@@ -14,7 +14,7 @@ export function setToken(token) {
   else localStorage.removeItem(TOKEN_KEY);
 }
 
-export const api = axios.create({ baseURL: API_BASE });
+export const api = axios.create({ baseURL: API_BASE, timeout: 300_000 }); // 5 min for analyze
 
 api.interceptors.request.use((config) => {
   const token = getToken();
