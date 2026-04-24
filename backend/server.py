@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, UploadFile, File, Form, Depends, HTTPException, status
+from fastapi import FastAPI, APIRouter, UploadFile, File, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import StreamingResponse
 from dotenv import load_dotenv
@@ -255,12 +255,10 @@ async def run_llm_extraction(combined_text: str) -> Dict[str, Any]:
         text = text[start : end + 1]
 
     try:
-        data = json.loads(text)
+        return json.loads(text)
     except json.JSONDecodeError as e:
         logger.error(f"JSON parse error: {e}\nRaw: {response[:500]}")
         raise HTTPException(status_code=502, detail=f"LLM returned invalid JSON: {e}")
-
-    return data
 
 
 # ---------------- Routes ----------------

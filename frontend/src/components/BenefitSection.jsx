@@ -22,15 +22,18 @@ function DataTable({ columns, rows, emptyLabel }) {
           </tr>
         </thead>
         <tbody>
-          {rows.map((r, i) => (
-            <tr key={i} className="border-b border-zinc-100 last:border-b-0 hover:bg-zinc-50">
-              {columns.map((c) => (
-                <td key={c.key} className="py-2 px-3 align-top text-zinc-800">
-                  {r[c.key] || <span className="text-zinc-300">—</span>}
-                </td>
-              ))}
-            </tr>
-          ))}
+          {rows.map((r, i) => {
+            const rowKey = r.id || r.tier || r.label || `row-${i}-${Object.values(r).join("|")}`;
+            return (
+              <tr key={rowKey} className="border-b border-zinc-100 last:border-b-0 hover:bg-zinc-50">
+                {columns.map((c) => (
+                  <td key={c.key} className="py-2 px-3 align-top text-zinc-800">
+                    {r[c.key] || <span className="text-zinc-300">—</span>}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
